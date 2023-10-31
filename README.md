@@ -1,11 +1,11 @@
 # Cellular Automata Causal Regions
 
-Python module to run and analyze the causal dependencies of a 
+Python module to run and analyze the causal dependencies of a
 cellular automate model
 
 ## Usage
 
-Examples of using this package and producing plots can be found in the 
+Examples of using this package and producing plots can be found in the
 jupyter notebook `usage.ipynb` which uses the module `ca_utils.py`.
 
 This has not yet been setup up as an installable package, but can be run

@@ -1,3 +1,5 @@
+import typing
+
 import numpy as np
 
 
@@ -12,9 +14,14 @@ def number_to_base(n: int, *, base: int, width: int) -> np.array:
     Returns:
         np.array: Array of digits
     """
-    if n > (base ** width) - 1:
-        raise ValueError(f"{n} is outside the allotted width {width} of the representation in base {base}")
-    ret = np.zeros(width).astype('int')
+    if n > (base**width) - 1:
+        raise ValueError(
+            (
+                f"{n} is outside the allotted width {width}"
+                " of the representation in base {base}"
+            )
+        )
+    ret = np.zeros(width).astype("int")
     idx = 0
     while n:
         ret[idx] = int(n % base)
@@ -23,7 +30,7 @@ def number_to_base(n: int, *, base: int, width: int) -> np.array:
     return ret
 
 
-def base_to_number(n: int, *, base: int):
+def base_to_number(n: typing.Union[typing.List, np.array], *, base: int):
     """Convert number in base array back to an integer value"""
     return np.sum(n * (base ** np.arange(len(n))))
 
@@ -42,14 +49,18 @@ def left_right_shift(n, base=2):
     """
     b = number_to_base(n, base=base, width=3)
     bases = base ** np.arange(3)
-    return np.array([np.sum(b[:-1] * bases[1:]) + np.arange(base),
-                     np.sum(b[1:] * bases[:-1]) + np.arange(base) * (base ** 2)])
+    return np.array(
+        [
+            np.sum(b[:-1] * bases[1:]) + np.arange(base),
+            np.sum(b[1:] * bases[:-1]) + np.arange(base) * (base**2),
+        ]
+    )
 
 
 def adjacency_rules(base=2):
     """
     Collects the left and right shifted value for all integers in the
-    range appropriate 
+    range appropriate
 
     Args:
         base (int): Base to use as representation
@@ -57,12 +68,12 @@ def adjacency_rules(base=2):
     Returns:
         dict: Dictionary with shifted values indexed by central value
     """
-    return {i: left_right_shift(i, base=base) for i in range(base ** 3)}
+    return {i: left_right_shift(i, base=base) for i in range(base**3)}
 
 
 def causal_dependency(rule, base=2):
     """
-    Derives how a triple state depends on it's neighbours given an update rule
+    Derives how a triple state depends on its neighbours given an update rule
 
     Args:
         rule (int): Update rule number
@@ -73,32 +84,30 @@ def causal_dependency(rule, base=2):
             dependency is indicated by the 0th index taking the value {0,-1}
             and conversely on the right in the 1st index taking the value {0,1}
     """
-    rule = number_to_base(rule, base=2, width=base ** 3)
+    rule = number_to_base(rule, base=2, width=base**3)
     adjacency = adjacency_rules(base=base)
 
-    ret = np.zeros((base ** 3, 2)).astype(np.int8)
+    ret = np.zeros((base**3, 2)).astype(np.int8)
 
     for k, v in adjacency.items():
         p = [(x, y) for x in v[0] for y in v[1]]
-        triple_mappings = (
-            {i: rule[i[0]] + (rule[k] * base) + rule[i[1]] * (base ** 2)
-             for i in p})
-        ll = triple_mappings[(v[0][0], v[1][0])] != triple_mappings[
-            (v[0][1], v[1][0])]
-        rr = triple_mappings[(v[0][0], v[1][0])] != triple_mappings[
-            (v[0][0], v[1][1])]
+        triple_mappings = {
+            i: rule[i[0]] + (rule[k] * base) + rule[i[1]] * (base**2) for i in p
+        }
+        ll = triple_mappings[(v[0][0], v[1][0])] != triple_mappings[(v[0][1], v[1][0])]
+        rr = triple_mappings[(v[0][0], v[1][0])] != triple_mappings[(v[0][0], v[1][1])]
         ret[k] = [ll, rr]
 
     return ret
 
 
-def run_ca(r, steps, width, base=2, random=True, seed=0, decay=0.85):
+def run_ca(rule, steps, width, base=2, random=True, seed=0, decay=0.85):
     """
     Run the model for a given rule, generating the basic rule output and
     the corresponding causal region representation
 
     Args:
-        r (int): Rule number
+        rule (int): Rule number
         steps (int): NUmber of update steps
         width (int): Width of state array
         base (int): Number of possible states
@@ -112,8 +121,8 @@ def run_ca(r, steps, width, base=2, random=True, seed=0, decay=0.85):
         tuple(np.array, np.array): Basic CA phase space, and causal region
             representation
     """
-    rule = number_to_base(r, base=base, width=base ** 3)
-    causal_map = causal_dependency(r, base=base) * np.array([-1, 1])
+    rule = number_to_base(rule, base=base, width=base**3)
+    causal_map = causal_dependency(rule, base=base) * np.array([-1, 1])
 
     actual = np.zeros((steps + 1, width)).astype(np.int8)
     triples = np.zeros((steps, width)).astype(np.int8)
@@ -128,10 +137,10 @@ def run_ca(r, steps, width, base=2, random=True, seed=0, decay=0.85):
         actual[0][int(width / 2)] = 1
 
     for i in range(1, steps + 1):
-        c = actual[i - 1]
-        r = c.take(right_shift, mode='wrap')
-        l = c.take(left_shift, mode='wrap')
-        idx = l + c * base + r * (base ** 2)
+        centre = actual[i - 1]
+        right = centre.take(right_shift, mode="wrap")
+        left = centre.take(left_shift, mode="wrap")
+        idx = left + centre * base + right * (base**2)
 
         actual[i] = rule[idx]
         triples[i - 1] = idx
@@ -143,8 +152,10 @@ def run_ca(r, steps, width, base=2, random=True, seed=0, decay=0.85):
         l_idx = np.arange(width) + causal[i, :, 0].astype(np.int8)
         r_idx = np.arange(width) + causal[i, :, 1].astype(np.int8)
         causal[i, :, 0] = causal[i, :, 0] + decay * causal[i - 1, :, 0].take(
-            l_idx, mode='wrap')
+            l_idx, mode="wrap"
+        )
         causal[i, :, 1] = causal[i, :, 1] + decay * causal[i - 1, :, 1].take(
-            r_idx, mode='wrap')
+            r_idx, mode="wrap"
+        )
 
     return actual, causal

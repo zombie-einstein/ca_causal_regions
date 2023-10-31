@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "ca-causal"
+version = "0.1.0"
+description = ""
+authors = ["zombie-einstein <zombie-einstein@proton.me>"]
+readme = "README.md"
+packages = [{include = "ca_causal"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+numpy = "^1.26.1"
+matplotlib = "^3.8.0"
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+pre-commit = "^3.5.0"
+taskipy = "^1.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+lint = { cmd = "pre-commit run --all-files", help="Code format checks"}
