@@ -50,7 +50,9 @@ def comparison_plot(
     if overlay:
         f, ax = plt.subplots(figsize=(9, 10 * (steps / width)))
         ax.matshow(actual[10:], cmap=plt.get_cmap("binary"))
-        ax.matshow(arr[10:], cmap=plt.get_cmap(colormap), alpha=0.75)
+        ax.matshow(
+            arr[10:], cmap=plt.get_cmap(colormap), alpha=0.75, vmin=-1.0, vmax=1.0
+        )
         ax.set_xticks([])
         ax.set_yticks([])
     else:
@@ -58,7 +60,7 @@ def comparison_plot(
         f, ax = plt.subplots(1, 2, figsize=(18, 10 * (steps / width)))
 
         ax[0].matshow(actual[10:], cmap=plt.get_cmap("binary"))
-        ax[1].matshow(arr[10:], cmap=plt.get_cmap(colormap))
+        ax[1].matshow(arr[10:], cmap=plt.get_cmap(colormap), vmin=-1.0, vmax=1.0)
 
         for i in ax:
             i.set_xticks([])
