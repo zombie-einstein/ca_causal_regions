@@ -7,13 +7,13 @@ readme = "README.md"
 packages = [{include = "ca_causal"}]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-numpy = "^1.26.1"
+python = ">=3.12,<4.0.0"
+numpy = "^2.5.0"
 matplotlib = "^3.8.0"
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
-pre-commit = "^3.5.0"
+pre-commit = "^4.7.0"
 taskipy = "^1.12.0"
 
 [build-system]
